@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta property="og:image" content="https://yohochen0710.github.io/earth-online/OGImage.jpg">
+    <meta property="og:url" content="https://yohochen0710.github.io/earth-online/comment.html">
+    <meta property="og:description" content="為地球Online進行評論！">
+    <meta property="og:type" content="website">
+    <title>地球 Online - 評論</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        :root {
+            --google-green: #01875f;
+            --google-blue: #0b57d0;
+            --text-main: #202124;
+            --text-sub: #5f6368;
+            --border: #dadce0;
+        }
+
+        body {
+            font-family: "Google Sans", Roboto, Arial, sans-serif, "Microsoft JhengHei";
+            background-color: #ffffff; color: var(--text-main); margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container { width: 100%; max-width: 600px; padding: 20px; box-sizing: border-box; }
+
+        /* 遊戲資訊 */
+        .app-header { display: flex; align-items: flex-start; margin-bottom: 24px; margin-top: 10px; }
+        .app-logo { width: 72px; height: 72px; border-radius: 20%; object-fit: cover; margin-right: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .app-title-box h1 { font-size: 24px; margin: 0; font-weight: 500; }
+        .dev-name { color: var(--google-green); font-weight: 500; font-size: 14px; margin: 4px 0; }
+        .app-tags { font-size: 12px; color: var(--text-sub); }
+
+        /* 數據列 */
+        .stats-bar { display: flex; justify-content: space-around; padding: 15px 0; margin-bottom: 25px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); text-align: center; }
+        .stat-item { flex: 1; position: relative; }
+        .stat-item:not(:last-child)::after { content: ""; position: absolute; right: 0; top: 20%; height: 60%; width: 1px; background: var(--border); }
+        .stat-value { font-size: 14px; font-weight: bold; }
+        .stat-label { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+        .iarc-icon { border: 1px solid var(--text-main); font-size: 10px; padding: 1px 3px; font-weight: bold; border-radius: 2px; }
+
+        /* 評分概覽 */
+        .rating-summary { display: flex; align-items: center; margin-bottom: 30px; }
+        .avg-container { text-align: left; margin-right: 32px; min-width: 100px; }
+        .big-score { font-size: 56px; font-weight: 500; line-height: 1; margin: 0; }
+        .stars-display { margin: 8px 0; display: flex; gap: 2px; }
+        .total-count-sub { font-size: 12px; color: var(--text-sub); }
+        .bars-container { flex-grow: 1; }
+        .bar-row { display: flex; align-items: center; margin-bottom: 4px; }
+        .bar-label { font-size: 12px; width: 10px; margin-right: 12px; }
+        .bar-bg { background: #e8eaed; height: 8px; flex-grow: 1; border-radius: 4px; overflow: hidden; }
+        .bar-fill { background: var(--google-green); height: 100%; width: 0%; transition: width 0.6s ease; }
+
+        /* 表單區域 */
+        .form-card { border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        input[type="text"], textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; margin-bottom: 12px; outline: none; box-sizing: border-box; resize: none; }
+        .star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; margin-bottom: 16px; }
+        .star-rating input { display: none; }
+        .star-rating label { font-size: 30px; color: #e8eaed; cursor: pointer; }
+        .star-rating input:checked ~ label, .star-rating label:hover, .star-rating label:hover ~ label { color: var(--google-green); }
+        #submit-btn { background-color: var(--google-green); color: white; border: none; padding: 10px 24px; border-radius: 4px; font-weight: 500; cursor: pointer; float: right; }
+
+        /* 篩選與排序區 */
+        .filter-section { border-top: 1px solid #f1f1f1; padding-top: 20px; }
+        .filter-chips { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+        .chip {
+            padding: 6px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+            white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            background: white; color: var(--text-main); transition: 0.2s;
+        }
+        .chip.active { background-color: #e8f0fe; border-color: var(--google-blue); color: var(--google-blue); font-weight: 500; }
+        .chip svg { display: none; width: 14px; height: 14px; fill: currentColor; }
+        .chip.active svg { display: block; }
+
+        .sort-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: relative; }
+        .current-filter-label { font-size: 18px; font-weight: 500; }
+
+        /* 下拉選單 */
+        .custom-dropdown { position: relative; }
+        .dropdown-trigger { display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 14px; color: var(--text-main); padding: 8px; }
+        .dropdown-trigger svg { width: 18px; height: 18px; fill: var(--text-sub); transition: transform 0.3s; }
+        .custom-dropdown.open .dropdown-trigger svg { transform: rotate(180deg); }
+        .dropdown-menu {
+            position: absolute; right: 0; top: 100%; background: #fff; min-width: 140px; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100; display: none; padding: 8px 0; overflow: hidden; border: 1px solid #eee;
+        }
+        .custom-dropdown.open .dropdown-menu { display: block; }
+        .dropdown-item { padding: 12px 20px; font-size: 14px; color: var(--text-main); cursor: pointer; transition: background 0.2s; }
+        .dropdown-item:hover { background-color: #f1f1f1; }
+        .dropdown-item.active { color: var(--google-blue); font-weight: 500; }
+
+        /* 評論清單 */
+        .review-item { margin-bottom: 32px; clear: both; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .user-header { display: flex; align-items: center; margin-bottom: 8px; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; font-weight: bold; }
+        .user-name { font-size: 14px; font-weight: 400; flex-grow: 1; }
+        .review-date { font-size: 12px; color: var(--text-sub); }
+        .item-stars { display: flex; gap: 1px; margin-bottom: 6px; }
+        .item-content { font-size: 14px; line-height: 1.5; color: var(--text-sub); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="app-header">
+        <img class="app-logo" src="https://images-assets.nasa.gov/image/GSFC_20171208_Archive_e002131/GSFC_20171208_Archive_e002131~large.jpg">
+        <div class="app-title-box">
+            <h1>地球ONLINE</h1>
+            <div class="dev-name">Universe Admin</div>
+            <div class="app-tags">提供應用程式內購</div>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-item"><div class="stat-value"><span id="avg-val-mini">0.0</span> ★</div><div class="stat-label" id="total-count-mini">正在載入 ⓘ</div></div>
+        <div class="stat-item"><div class="stat-value"><span class="iarc-icon">IARC</span> 0+</div><div class="stat-label">0 歲以上 ⓘ</div></div>
+        <div class="stat-item"><div class="stat-value">超過 82億 次</div><div class="stat-label">下載次數</div></div>
+    </div>
+
+    <div class="rating-summary">
+        <div class="avg-container">
+            <div class="big-score" id="avg-score">0.0</div>
+            <div class="stars-display" id="avg-stars-summary"></div>
+            <div class="total-count-sub" id="total-count">0</div>
+        </div>
+        <div class="bars-container">
+            <div class="bar-row"><span class="bar-label">5</span><div class="bar-bg"><div id="bar5" class="bar-fill"></div></div></div>
+            <div class="bar-row"><span class="bar-label">4</span><div class="bar-bg"><div id="bar4" class="bar-fill"></div></div></div>
+            <div class="bar-row"><span class="bar-label">3</span><div class="bar-bg"><div id="bar3" class="bar-fill"></div></div></div>
+            <div class="bar-row"><span class="bar-label">2</span><div class="bar-bg"><div id="bar2" class="bar-fill"></div></div></div>
+            <div class="bar-row"><span class="bar-label">1</span><div class="bar-bg"><div id="bar1" class="bar-fill"></div></div></div>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){onFormSuccess();}"></iframe>
+        <form id="gform" action="https://docs.google.com/forms/d/e/1FAIpQLSchz4cAIwJoiPLDB_8GaP2Qm4tlBlDGFUjMe-N7hjUs2R-09g/formResponse" method="post" target="hidden_iframe" onsubmit="return validateAndSend();">
+            <input type="text" id="input-name" name="entry.1555241058" placeholder="顯示名稱" required>
+            <div class="star-rating">
+                <input type="radio" id="s5" name="entry.190303048" value="5" required/><label for="s5">★</label>
+                <input type="radio" id="s4" name="entry.190303048" value="4"/><label for="s4">★</label>
+                <input type="radio" id="s3" name="entry.190303048" value="3"/><label for="s3">★</label>
+                <input type="radio" id="s2" name="entry.190303048" value="2"/><label for="s2">★</label>
+                <input type="radio" id="s1" name="entry.190303048" value="1"/><label for="s1">★</label>
+            </div>
+            <textarea id="input-msg" name="entry.1552154296" rows="2" placeholder="詳細評論 (選填)"></textarea>
+            <button type="submit" id="submit-btn">發布</button>
+        </form>
+        <div style="clear:both"></div>
+    </div>
+
+    <div class="filter-section">
+        <div class="filter-chips" id="filter-chips">
+            <div class="chip active" data-filter="all"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>全部</div>
+            <div class="chip" data-filter="5"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>5 ★</div>
+            <div class="chip" data-filter="4"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>4 ★</div>
+            <div class="chip" data-filter="3"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>3 ★</div>
+            <div class="chip" data-filter="2"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>2 ★</div>
+            <div class="chip" data-filter="1"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>1 ★</div>
+        </div>
+
+        <div class="sort-row">
+            <div class="current-filter-label" id="current-range-name">全部</div>
+            <div class="custom-dropdown" id="custom-dropdown">
+                <div class="dropdown-trigger">
+                    <span id="current-sort-label">由新到舊</span>
+                    <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+                </div>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item active" data-value="newest">由新到舊</div>
+                    <div class="dropdown-item" data-value="oldest">由舊到新</div>
+                    <div class="dropdown-item rating-sort-item" data-value="rating-high">由高到低</div>
+                    <div class="dropdown-item rating-sort-item" data-value="rating-low">由低到高</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reviews-list"></div>
+</div>
+
+<script>
+    let submitted = false;
+    let cachedReviews = [];
+    let currentFilter = 'all';
+    let currentSort = 'newest';
+    const sheetId = '1liBxiXkxyycNfZ8Vcgx5-bT7lsuZKl4oBfRB26nnYf4';
+    const avatarColors = ['#7b1fa2', '#00796b', '#c2185b', '#512da8', '#1976d2', '#e67e22'];
+
+    // 精確解析 Google 傳回的 Date 格式字串
+    function parseGoogleDate(dateStr) {
+        if (!dateStr) return Date.now();
+        const parts = dateStr.match(/\d+/g);
+        if (parts && parts.length >= 3) {
+            // Google Month 是 0 索引
+            return new Date(parts[0], parts[1], parts[2], parts[3] || 0, parts[4] || 0, parts[5] || 0).getTime();
+        }
+        return new Date(dateStr).getTime();
+    }
+
+    // 下拉選單邏輯
+    const dropdown = document.getElementById('custom-dropdown');
+    const trigger = dropdown.querySelector('.dropdown-trigger');
+    const sortLabel = document.getElementById('current-sort-label');
+    trigger.addEventListener('click', () => dropdown.classList.toggle('open'));
+
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+            currentSort = item.dataset.value;
+            sortLabel.innerText = item.innerText;
+            document.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            dropdown.classList.remove('open');
+            renderEngine();
+        });
+    });
+
+    window.addEventListener('click', (e) => { if (!dropdown.contains(e.target)) dropdown.classList.remove('open'); });
+
+    function getStarSvg(isFilled) {
+        const color = isFilled ? '#01875f' : '#e8eaed';
+        return `<svg width="12" height="12" viewBox="0 0 24 24" style="fill:${color}"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+    }
+
+    function formatCompactNumber(n) { return n < 10000 ? n : (n/10000).toFixed(1) + "萬"; }
+    function formatCommaNumber(n) { return n.toLocaleString(); }
+    function parseValue(cell) { return cell && cell.v !== null ? String(cell.v).trim() : ""; }
+
+    function createReviewElement(r) {
+        let starsHtml = '';
+        for(let i=1; i<=5; i++) starsHtml += getStarSvg(i <= r.star);
+        const msgHtml = r.msg ? `<div class="item-content">${r.msg}</div>` : '';
+        return `
+            <div class="review-item">
+                <div class="user-header">
+                    <div class="avatar" style="background-color: ${r.color}">${r.name.charAt(0).toUpperCase()}</div>
+                    <div class="user-name">${r.name}</div>
+                    <div class="review-date">${r.date}</div>
+                </div>
+                <div class="item-stars">${starsHtml}</div>
+                ${msgHtml}
+            </div>
+        `;
+    }
+
+    function renderEngine() {
+        let displayList = [...cachedReviews];
+        if (currentFilter !== 'all') {
+            displayList = displayList.filter(r => r.star == currentFilter);
+            document.getElementById('current-range-name').innerText = currentFilter + " ★";
+            document.querySelectorAll('.rating-sort-item').forEach(el => el.style.display = 'none');
+            if(currentSort.includes('rating')) {
+                currentSort = 'newest';
+                sortLabel.innerText = "由新到舊";
+                document.querySelectorAll('.dropdown-item').forEach(i => i.classList.toggle('active', i.dataset.value === 'newest'));
+            }
+        } else {
+            document.getElementById('current-range-name').innerText = "全部";
+            document.querySelectorAll('.rating-sort-item').forEach(el => el.style.display = 'block');
+        }
+
+        // 精確到秒的排序邏輯 (b.timestamp - a.timestamp)
+        if (currentSort === 'newest') displayList.sort((a, b) => b.timestamp - a.timestamp);
+        else if (currentSort === 'oldest') displayList.sort((a, b) => a.timestamp - b.timestamp);
+        else if (currentSort === 'rating-high') displayList.sort((a, b) => b.star - a.star || b.timestamp - a.timestamp);
+        else if (currentSort === 'rating-low') displayList.sort((a, b) => a.star - b.star || b.timestamp - a.timestamp);
+
+        document.getElementById('reviews-list').innerHTML = displayList.map(createReviewElement).join('');
+    }
+
+    document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentFilter = chip.dataset.filter;
+            renderEngine();
+        });
+    });
+
+    function validateAndSend() {
+        const nameInput = document.getElementById('input-name');
+        const msgInput = document.getElementById('input-msg');
+        const name = nameInput.value;
+        const msg = msgInput.value;
+        const star = parseInt(document.querySelector('input[name="entry.190303048"]:checked').value);
+        
+        if (/^\d+$/.test(name) || /<[^>]*>/.test(name)) return false;
+        submitted = true;
+
+        // 樂觀更新：使用精確的 Date.now() 包含秒數
+        const newReview = { 
+            timestamp: Date.now(), 
+            name, star, msg, 
+            date: new Date().toLocaleDateString() + ' (剛剛)', 
+            color: '#01875f' 
+        };
+        cachedReviews.unshift(newReview);
+        renderEngine();
+        return true;
+    }
+
+    function onFormSuccess() {
+        document.getElementById('gform').reset();
+        document.getElementById('submit-btn').innerText = "已發布";
+        setTimeout(() => { document.getElementById('submit-btn').innerText = "發布"; submitted = false; }, 3000);
+    }
+
+    async function fetchReviews() {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+        try {
+            const res = await fetch(url);
+            const text = await res.text();
+            const data = JSON.parse(text.substring(47).slice(0, -2));
+            const rows = data.table.rows;
+            let totalS = 0, counts = [0, 0, 0, 0, 0, 0];
+            cachedReviews = [];
+            
+            rows.forEach((row, index) => {
+                const r = row.c;
+                if (!r[0]) return;
+                const star = parseInt(parseValue(r[2])) || 5;
+                // 解析精確毫秒時間戳
+                const timestamp = parseGoogleDate(r[0].v);
+                
+                cachedReviews.push({
+                    timestamp: timestamp,
+                    name: parseValue(r[1]) || 'Google 用戶',
+                    star: star, msg: parseValue(r[3]),
+                    date: r[0].f ? r[0].f.split(' ')[0] : '',
+                    color: avatarColors[Math.floor(Math.random() * avatarColors.length)]
+                });
+                totalS += star;
+                counts[star]++;
+            });
+            const total = cachedReviews.length;
+            if (total > 0) {
+                const avg = (totalS / total).toFixed(1);
+                document.getElementById('avg-val-mini').innerText = avg;
+                document.getElementById('total-count-mini').innerText = `${formatCompactNumber(total)} 則評論 ⓘ`;
+                document.getElementById('avg-score').innerText = avg;
+                document.getElementById('total-count').innerText = formatCommaNumber(total);
+                let summaryStars = '';
+                for(let i=1; i<=5; i++) summaryStars += getStarSvg(i <= Math.round(avg));
+                document.getElementById('avg-stars-summary').innerHTML = summaryStars;
+                for(let j=1; j<=5; j++) document.getElementById(`bar${j}`).style.width = ((counts[j]/total)*100) + '%';
+            }
+            renderEngine();
+        } catch (e) { console.error(e); }
+    }
+    fetchReviews();
+</script>
+
+</body>
+</html>
